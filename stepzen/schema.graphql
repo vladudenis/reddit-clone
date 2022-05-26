@@ -1,0 +1,94 @@
+# This file was generated based on ".graphqlconfig". Do not edit manually.
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Comment {
+    created_at: DateTime
+    id: ID!
+    post_id: ID
+    text: String
+    username: String
+}
+
+"""
+
+Mutation root object type.
+
+Contains fields that are available at the top level of a GraphQL `mutation`.
+
+If an operation is a `mutation`, the result of the operation is the result of executing the mutation’s
+top level selection set on the `Mutation` root object type. This selection set is executed serially.
+
+It is expected that the top level fields in a `mutation` operation perform side‐effects on backend data systems.
+Serial execution of the provided mutations ensures against race conditions during these side‐effects.
+"""
+type Mutation {
+    "In this mutation example you can see how to do a mutation to delete data from the database."
+    deletePost(body: String!, created_at: DateTime!, id: ID!, image: String!, subreddit_id: ID!, title: String!, username: String!): Post
+    "In this mutation example you can see how to do a mutation to insert data in the database."
+    insertPost(body: String!, image: String!, subreddit_id: ID!, title: String!, username: String!): Post
+    insertSubreddit(topic: String!): Subreddit
+}
+
+type Post {
+    body: String
+    created_at: DateTime
+    id: ID!
+    image: String
+    subreddit_id: ID
+    title: String
+    username: String
+}
+
+"""
+
+Query root object type.
+
+Contains fields that are available at the top level of a GraphQL `query`.
+
+If an operation is a `query`, the result of the operation is the result of
+executing the query’s top level selection set with the `Query` root object type.
+"""
+type Query {
+    """
+
+    In this example, a single query parameter is passed. If the request to the DB will
+    return at most one value you can remove the square brackets from the result.
+    """
+    getCommentByPost_id(post_id: ID!): [Comment]
+    """
+
+    In this example, two query parameters are passed. If the request to the DB will
+    return at most one value you can remove the square brackets from the result.
+    """
+    getCommentByPost_idAndUsername(post_id: ID!, username: String!): [Comment]
+    getCommentList: [Comment]
+    "This query is an example of how to simply paginate your responses."
+    getPaginatedCommentList(after: Int!, first: Int!): [Comment]
+    getPostList: [Post]
+    getSubredditList: [Subreddit]
+    "Query that returns subreddits given a subreddit id."
+    getSubredditListById(id: ID!): [Subreddit]
+    getSubredditListByTopic(topic: String!): [Subreddit]
+    getVoteList: [Vote]
+}
+
+type Subreddit {
+    created_at: DateTime
+    id: ID!
+    topic: String
+}
+
+type Vote {
+    created_at: DateTime
+    id: ID!
+    post_id: ID
+    upvote: Boolean
+    username: String
+}
+
+"`DateTime` scalar type represents a date and time. DateTime is serialized as an RFC 3339 quoted string"
+scalar DateTime

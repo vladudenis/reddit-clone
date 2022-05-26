@@ -1,0 +1,206 @@
+type Comment {
+  created_at: DateTime
+  id: ID!
+  post_id: ID
+  text: String
+  username: String
+}
+
+type Subreddit {
+  created_at: DateTime
+  id: ID!
+  topic: String
+}
+
+type Vote {
+  created_at: DateTime
+  id: ID!
+  post_id: ID
+  upvote: Boolean
+  username: String
+}
+
+type Post {
+  body: String
+  created_at: DateTime
+  id: ID!
+  image: String
+  subreddit_id: ID
+  title: String
+  username: String
+  vote: [Vote]
+  @materializer(
+    query: "getVoteListById"
+    arguments: [{ name: "post_id", field: "id" }]
+  )
+  comment: [Comment]
+  @materializer(
+    query: "getCommentListById"
+    arguments: [{ name: "post_id", field: "id" }]
+  )
+  subreddit: [Subreddit]
+  @materializer(
+    query: "getSubredditListById",
+    arguments: [{ name: "id", field: "subreddit_id" }]
+  )
+}
+
+type Query {
+  getPostList: [Post]
+  @dbquery(
+    type: "postgresql"
+    configuration: "postgresql_config"
+    query: """
+    select * from "Post"
+    order by "Post"."created_at" desc
+    """
+  )
+  getPostListByTopic(topic: String!): [Post]
+  @dbquery(
+  type: "postgresql"
+  configuration: "postgresql_config"
+  query: """
+  select * , "Post"."id" as id from "Post"
+  join "Subreddit" on "Subreddit"."id" = "Post"."subreddit_id"
+  where "Subreddit"."topic" = $1
+  order by "Post"."created_at" desc
+  """
+  )
+  getPostByPostId(post_id: ID!): Post
+  @dbquery(
+    type: "postgresql"
+    configuration: "postgresql_config"
+    query: """
+    select * from "Post"
+    where "Post"."id" = $1
+    """
+  )
+  getCommentList: [Comment]
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Comment"
+    configuration: "postgresql_config"
+  )
+  getCommentListById(post_id: ID!): [Comment]
+  @dbquery(
+    type: "postgresql"
+    query: """
+    select * from "Comment" where "post_id"=$1
+    """
+    configuration: "postgresql_config"
+  )
+  getSubredditList: [Subreddit]
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Subreddit"
+    configuration: "postgresql_config"
+  )
+  getSubredditListByTopic(topic: String!): [Subreddit]
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    query: """
+    select * from "Subreddit" where "topic" = $1
+    """
+    configuration: "postgresql_config"
+  )
+  getSubredditListById(id: ID!): [Subreddit]
+  @dbquery(
+    type: "postgresql"
+    query: """
+    select * from "Subreddit" where "id"=$1
+    """
+    configuration: "postgresql_config"
+  )
+  getSubredditListLimit(limit: Int!): [Subreddit]
+  @dbquery(
+    type: "postgresql"
+    query: """
+    select * from "Subreddit"
+    order by "created_at" desc
+    limit $1
+    """
+    configuration: "postgresql_config"
+  )
+  getVoteList: [Vote]
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Vote"
+    configuration: "postgresql_config"
+  )
+  getVoteListById(post_id: ID!): [Vote]
+  @dbquery(
+    type: "postgresql"
+    query: """
+    select * from "Vote" where "post_id"=$1
+    order by "Vote"."created_at" desc
+    """
+    configuration: "postgresql_config"
+  )
+}
+
+type Mutation {
+  """
+  In this mutation example you can see how to do a mutation to insert data in the database.
+  """
+  insertPost(
+    image: String!
+    body: String!
+    subreddit_id: ID!
+    title: String!
+    username: String!
+  ): Post
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Post"
+    dml: INSERT
+    configuration: "postgresql_config"
+  )
+  insertComment(post_id: ID!, username: String!, text: String!): Comment
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Comment"
+    dml: INSERT
+    configuration: "postgresql_config"
+  )
+  insertVote(post_id: ID!, username: String! upvote: Boolean!): Vote
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Vote"
+    dml: INSERT
+    configuration: "postgresql_config"
+  )
+  insertSubreddit(topic: String!): Subreddit
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Subreddit"
+    dml: INSERT
+    configuration: "postgresql_config"
+  )
+  """
+  In this mutation example you can see how to do a mutation to delete data from the database.
+  """
+  deletePost(
+    image: String!
+    id: ID!
+    body: String!
+    created_at: DateTime!
+    subreddit_id: ID!
+    title: String!
+    username: String!
+  ): Post
+  @dbquery(
+    type: "postgresql"
+    schema: "public"
+    table: "Post"
+    dml: DELETE
+    configuration: "postgresql_config"
+  )
+}
